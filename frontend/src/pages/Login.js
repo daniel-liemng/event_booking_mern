@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import Paper from "@material-ui/core/Paper";
 import TextField from "@material-ui/core/TextField";
 import { Button, Typography } from "@material-ui/core";
+
+import { useUserContext } from "../context/userContext";
+import Message from "../components/Message";
+import Loading from "../components/Loading";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -38,20 +42,52 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Login = () => {
+const Login = ({ history, location }) => {
   const classes = useStyles();
+
+  const {
+    user,
+    user_login_loading: loading,
+    user_login_error: error,
+    loginUser,
+  } = useUserContext();
 
   const [userInput, setUserInput] = useState({
     email: "",
     password: "",
   });
+  const [message, setMessage] = useState(null);
+
+  const redirect = location.search ? location.search.split("=")[1] : "/";
+
+  useEffect(() => {
+    if (user) {
+      history.push(redirect);
+    }
+  }, [history, redirect, user]);
 
   const handleChange = (e) => {
     setUserInput({ ...userInput, [e.target.name]: e.target.value });
   };
   const handleLogin = (e) => {
     e.preventDefault();
+
+    const { email, password } = userInput;
+
+    setMessage(error);
+
+    loginUser(email, password);
   };
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setMessage(null);
+  };
+
+  // console.log("error", message);
+  console.log("123login", error);
 
   return (
     <Container maxWidth='sm'>
@@ -65,11 +101,20 @@ const Login = () => {
           Login
         </Typography>
 
+        {message && (
+          <Message
+            open={message ? true : false}
+            handleClose={handleSnackbarClose}
+            message={message}
+            type='error'
+          />
+        )}
+
         <form
           className={classes.root}
           noValidate
           autoComplete='off'
-          onClick={handleLogin}
+          onSubmit={handleLogin}
         >
           <TextField
             label='Email'
@@ -105,8 +150,9 @@ const Login = () => {
             variant='contained'
             color='primary'
             className={classes.submitBtn}
+            disabled={loading}
           >
-            Login
+            {loading ? <Loading size='1.3rem' /> : "Login"}
           </Button>
         </form>
 

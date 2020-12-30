@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import Paper from "@material-ui/core/Paper";
 import TextField from "@material-ui/core/TextField";
 import { Button, Typography } from "@material-ui/core";
+
+import { useUserContext } from "../context/userContext";
+import Message from "../components/Message";
+import Loading from "../components/Loading";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -38,21 +42,53 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Register = () => {
+const Register = ({ history, location }) => {
   const classes = useStyles();
+
+  const {
+    user,
+    user_register_loading: loading,
+    user_register_error: error,
+    registerUser,
+  } = useUserContext();
 
   const [userInput, setUserInput] = useState({
     name: "",
     email: "",
     password: "",
   });
+  const [message, setMessage] = useState(null);
+
+  const redirect = location.search ? location.search.split("=")[1] : "/";
+
+  useEffect(() => {
+    if (user) {
+      history.push(redirect);
+    }
+  }, [history, redirect, user]);
 
   const handleChange = (e) => {
     setUserInput({ ...userInput, [e.target.name]: e.target.value });
   };
-  const handleLogin = (e) => {
+  const handleRegister = (e) => {
     e.preventDefault();
+
+    const { name, email, password } = userInput;
+
+    setMessage(error);
+
+    registerUser(name, email, password);
   };
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setMessage(null);
+  };
+
+  // console.log("error", message);
+  console.log("123register", error);
 
   return (
     <Container maxWidth='sm'>
@@ -66,11 +102,20 @@ const Register = () => {
           Register
         </Typography>
 
+        {message && (
+          <Message
+            open={message ? true : false}
+            handleClose={handleSnackbarClose}
+            message={message}
+            type='error'
+          />
+        )}
+
         <form
           className={classes.root}
           noValidate
           autoComplete='off'
-          onClick={handleLogin}
+          onSubmit={handleRegister}
         >
           <TextField
             label='Name'
@@ -120,8 +165,9 @@ const Register = () => {
             variant='contained'
             color='primary'
             className={classes.submitBtn}
+            disabled={loading}
           >
-            Register
+            {loading ? <Loading size='1.3rem' /> : "Register"}
           </Button>
         </form>
 
