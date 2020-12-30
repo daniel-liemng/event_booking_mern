@@ -15,7 +15,8 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
-app.use("/users", require("./routes/userRoutes"));
+app.use("/api/users", require("./routes/userRoutes"));
+app.use("/api/events", require("./routes/eventRoutes"));
 
 // Error handler
 app.use(notFound);

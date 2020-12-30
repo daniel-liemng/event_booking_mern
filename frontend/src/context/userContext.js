@@ -20,9 +20,9 @@ const getUserInfoFromLocalStorage = localStorage.getItem("event-userInfo")
 const initialState = {
   user: getUserInfoFromLocalStorage,
   user_login_loading: false,
-  user_login_error: false,
+  user_login_error: null,
   user_register_loading: false,
-  user_register_error: false,
+  user_register_error: null,
 };
 
 const UserProvider = ({ children }) => {
@@ -40,7 +40,7 @@ const UserProvider = ({ children }) => {
       };
 
       const { data } = await axios.post(
-        "/users/register",
+        "/api/users/register",
         { name, email, password },
         config
       );
@@ -71,7 +71,7 @@ const UserProvider = ({ children }) => {
       };
 
       const { data } = await axios.post(
-        "/users/login",
+        "/api/users/login",
         { email, password },
         config
       );
